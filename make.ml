@@ -33,7 +33,7 @@ let self_destruct bannerstring =
     if bannerstring = "" then longer_banner
     else longer_banner^"\n        "^bannerstring in
   (Gc.compact();
-   ignore(Unix.system "sleep 1s; kill -USR1 $PPID");
+   (try ignore(Unix.system "sleep 1s; dmtcp_command --checkpoint") with Unix.Unix_error _ -> ());
    Format.print_string complete_banner;
    Format.print_newline(); Format.print_newline());;
 

@@ -71,8 +71,11 @@ pa_j.ml: pa_j_3.07.ml pa_j_3.08.ml pa_j_3.09.ml pa_j_3.1x_5.xx.ml pa_j_3.1x_6.xx
 
 hol: pa_j.cmo ${HOLSRC} update_database.ml;                    \
      if test `uname` = Linux; then                                      \
-     echo -e '#use "make.ml";;\nloadt "update_database.ml";;\nself_destruct "";;' | ckpt -a SIGUSR1 -n hol.snapshot ocaml;\
-     mv hol.snapshot hol;                                               \
+     rm -rf checkpoint/hol;						\
+     mkdir -p checkpoint/hol;						\
+     /bin/echo -e '#use "make.ml";;\nloadt "update_database.ml";;\nself_destruct "";;' | dmtcp_checkpoint --ckptdir checkpoint/hol ocaml;\
+     /bin/echo -e '#!/bin/bash\nexec dmtcp_restart' checkpoint/hol/*.dmtcp > ./hol;\
+     chmod +x ./hol;							\
      else                                                               \
      echo '******************************************************';     \
      echo 'FAILURE: Image build assumes Linux and ckpt program';        \
@@ -90,7 +93,8 @@ hol.multivariate: ./hol                                                 \
      Multivariate/clifford.ml Multivariate/integration.ml               \
      Multivariate/measure.ml                                            \
      Multivariate/multivariate_database.ml update_database.ml;          \
-     echo -e 'loadt "Multivariate/make.ml";;\nloadt "update_database.ml";;\nself_destruct "Preloaded with multivariate analysis";;' | ./hol; mv hol.snapshot hol.multivariate;
+     /bin/echo -e 'loadt "Multivariate/make.ml";;\nloadt "update_database.ml";;\nself_destruct "Preloaded with multivariate analysis";;' | dmtcp_restart --ckptdir checkpoint/multivariate checkpoint/hol/*.dmtcp;\
+     /bin/echo -e '#!/bin/bash\nexec dmtcp_restart' checkpoint/multivariate/*.dmtcp > ./hol.multivariate
 
 # Build an image with analysis and SOS procedure preloaded
 
